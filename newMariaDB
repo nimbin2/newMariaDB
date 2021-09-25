@@ -7,36 +7,55 @@ function ctrl_c() {
    exit
 }
 
+green() {
+   echo -e "\033[0;32m$1\033[0m"
+}
+
+red() {
+   echo -e "\033[0;31m$1\033[0m"
+}
+
+echoOrange() {
+   echo -en '\033[0;33m'
+}
+
+echoNC() {
+   echo -en '\033[0m'
+}
 
 maria() {
    mysql -u root -p"${rootpasswd}" -e "$1"
 }
 
 echoMaria() {
+   echoOrange
    echo "$mariasCode"
+   echoNC
    maria "$mariasCode"
 }
 
 readMaria() {
+   echoOrange
    echo -n "$mariasCode"
+   echoNC
    read
    maria "$mariasCode"
 }
 
 users() { #help
-   echo "List all users:"
+   green "List all users:"
    mariasCode="SELECT DISTINCT User FROM mysql.user;"
    echoMaria
 }
 
 databases() { #help
-   echo "List all databases:"
+   green "List all databases:"
    mariasCode="SHOW DATABASES"
    echoMaria
 }
 
 userDatabases() { #help
-   echo "Get databases of user"
+   green "Get databases of user"
    unlockMaria
    getUser
    mariasCode="SELECT Db FROM mysql.db WHERE User=\"$user\";"
@@ -44,10 +63,10 @@ userDatabases() { #help
 }
 
 createUser() { #help
-   echo "Create new maria user"
+   green "Create new maria user"
    unlockMaria
    getUser
-   echo "Please enter db-password"
+   green "Please enter db-password"
    read PASSWDDB
    mariasCode="CREATE USER \`${user}\`@'localhost' IDENTIFIED BY '${PASSWDDB}';" 
    readMaria
@@ -55,7 +74,7 @@ createUser() { #help
 }
 
 createDatabase() { #help
-   echo "Create new database"
+   green "Create new database"
    unlockMaria
    getDatabase
    mariasCode="CREATE DATABASE \`${database}\`;"
@@ -64,7 +83,7 @@ createDatabase() { #help
 }
 
 grantPrivileges() { #help
-   echo "Grant all privileges on database for user:"
+   green "Grant all privileges on database for user:"
    unlockMaria
    [ -z $user ] && getUser
    [ -z $database ] && getDatabase
@@ -74,7 +93,7 @@ grantPrivileges() { #help
 }
 
 alterUserPassword() { #help
-   echo "Change user password:"
+   red "Change user password:"
    unlockMaria
    getUser
    getPassword
@@ -83,7 +102,7 @@ alterUserPassword() { #help
 }
 
 dropUser() { #help
-   echo "Drop user"
+   red "Drop user"
    unlockMaria
    getUser
    mariasCode="DROP USER IF EXISTS \`${user}\`@'localhost';"
@@ -92,7 +111,7 @@ dropUser() { #help
 }
 
 dropDatabase() { #help
-   echo "Drop database"
+   red "Drop database"
    unlockMaria
    getDatabase
    mariasCode="DROP DATABASE \`${database}\`;"
@@ -107,13 +126,13 @@ getUser() {
 }
 
 getPassword() {
-   echo -n "Enter a password: "
+   green -n "Enter a password: "
    read password
 }
 
 getDatabase() {
    databases
-   echo "Please enter a database name"
+   green "Enter a database name"
    echo -n "db-name: "
    read database
 }
@@ -122,7 +141,7 @@ unlockMaria() {
    [ -z "$rootpasswd" ] && getMariaRootPw
 }
 getMariaRootPw() {
-   echo "Please enter a root user MySQL password!"
+   green "Enter a root user MySQL password!"
    echo "Note: password will be hidden when typing"
    echo -n "MySQL root password: "
    read -s rootpasswd
@@ -131,7 +150,7 @@ getMariaRootPw() {
 }
 
 newDB() { #help
-   echo "Create new Maria database"
+   green "Create new Maria database and user"
    unlockMaria
    createUser
    createDatabase
@@ -139,7 +158,7 @@ newDB() { #help
 }
 
 list() { #help
-   echo "List users and databases:"
+   green "List users and databases:"
    unlockMaria 
    users
    databases
@@ -151,7 +170,7 @@ list() { #help
    SCRIPT_PATH="$SCRIPT_DIR/$SCRIPT_NAME"
 
    echo "## Help"
-   cat $SCRIPT_PATH | grep -A1 "() { #help" | sed "s/() {//g" | sed "s/echo//g" | sed "s/#help//g" | head -n -2
+   cat $SCRIPT_PATH | grep -A1 "() { #help" | sed "s/() {//g" | sed "s/ red //g" | sed "s/ green //g" | sed "s/#help//g" | head -n -2
 }
 
 -h() {
