@@ -1,1 +1,160 @@
-/home/n76310/.local/bin/newMariaDB
+#!/bin/bash
+
+# trap ctrl-c and call ctrl_c()
+trap ctrl_c INT
+
+function ctrl_c() {
+   exit
+}
+
+
+maria() {
+   mysql -u root -p"${rootpasswd}" -e "$1"
+}
+
+echoMaria() {
+   echo "$mariasCode"
+   maria "$mariasCode"
+}
+
+readMaria() {
+   echo -n "$mariasCode"
+   read
+   maria "$mariasCode"
+}
+
+users() { #help
+   echo "List all users:"
+   mariasCode="SELECT DISTINCT User FROM mysql.user;"
+   echoMaria
+}
+
+databases() { #help
+   echo "List all databases:"
+   mariasCode="SHOW DATABASES"
+   echoMaria
+}
+
+userDatabases() { #help
+   echo "Get databases of user"
+   unlockMaria
+   getUser
+   mariasCode="SELECT Db FROM mysql.db WHERE User=\"$user\";"
+   echoMaria
+}
+
+createUser() { #help
+   echo "Create new maria user"
+   unlockMaria
+   getUser
+   echo "Please enter db-password"
+   read PASSWDDB
+   mariasCode="CREATE USER \`${user}\`@'localhost' IDENTIFIED BY '${PASSWDDB}';" 
+   readMaria
+   users
+}
+
+createDatabase() { #help
+   echo "Create new database"
+   unlockMaria
+   databases
+   getDatabase
+   mariasCode="CREATE DATABASE \`${database}\`;"
+   readMaria
+   databases
+}
+
+grantPrivileges() { #help
+   echo "Grant all privileges on database for user:"
+   [ -z $user ] && getUser
+   [ -z $database ] && getDatabase
+   mariasCode="GRANT ALL PRIVILEGES ON \`${database}\`.* TO '${user}'@'localhost';"
+   readMaria
+   mariasCode="FLUSH PRIVILEGES;"
+}
+
+alterUserPassword() { #help
+   echo "Change user password:"
+   unlockMaria
+   getUser
+   getPassword
+   mariasCode="ALTER USER \"$user\"@localhost IDENTIFIED BY \"$password\";"
+   readMaria
+}
+
+dropUser() { #help
+   echo "Drop user"
+   unlockMaria
+   getUser
+   mariasCode="DROP USER IF EXISTS \`${user}\`@'localhost';"
+   readMaria
+   users
+}
+
+dropDatabase() { #help
+   echo "Drop database"
+   unlockMaria
+   databases
+   getDatabase
+   mariasCode="DROP DATABASE \`${database}\`;"
+   readMaria
+   databases
+}
+
+getUser() {
+   users
+   echo "Enter a username: "
+   read user
+}
+
+getPassword() {
+   echo -n "Enter a password: "
+   read password
+}
+
+getDatabase() {
+   echo "Please enter a database name"
+   echo -n "db-name: "
+   read database
+}
+
+unlockMaria() {
+   [ -z "$rootpasswd" ] && getMariaRootPw
+}
+getMariaRootPw() {
+   echo "Please enter a root user MySQL password!"
+   echo "Note: password will be hidden when typing"
+   echo -n "MySQL root password: "
+   read -s rootpasswd
+   maria
+   echo ""
+}
+
+newDB() { #help
+   echo "Create new Maria database"
+   unlockMaria
+   createUser
+   createDatabase
+   grantPrivileges
+}
+
+list() { #help
+   echo "List users and databases:"
+   unlockMaria 
+   users
+   databases
+}
+
+--help() {
+   SCRIPT_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)"
+   SCRIPT_NAME="$(basename "$0")"
+   SCRIPT_PATH="$SCRIPT_DIR/$SCRIPT_NAME"
+
+   echo "## Help"
+   cat $SCRIPT_PATH | grep -A1 "() { #help" | sed "s/() {//g" | sed "s/echo//g" | sed "s/#help//g" | head -n -2
+}
+
+-h() {
+ --help
+}
+[[ ! -z ${@} ]] && ${@} || --help
