@@ -57,7 +57,6 @@ createUser() { #help
 createDatabase() { #help
    echo "Create new database"
    unlockMaria
-   databases
    getDatabase
    mariasCode="CREATE DATABASE \`${database}\`;"
    readMaria
@@ -66,6 +65,7 @@ createDatabase() { #help
 
 grantPrivileges() { #help
    echo "Grant all privileges on database for user:"
+   unlockMaria
    [ -z $user ] && getUser
    [ -z $database ] && getDatabase
    mariasCode="GRANT ALL PRIVILEGES ON \`${database}\`.* TO '${user}'@'localhost';"
@@ -94,7 +94,6 @@ dropUser() { #help
 dropDatabase() { #help
    echo "Drop database"
    unlockMaria
-   databases
    getDatabase
    mariasCode="DROP DATABASE \`${database}\`;"
    readMaria
@@ -113,6 +112,7 @@ getPassword() {
 }
 
 getDatabase() {
+   databases
    echo "Please enter a database name"
    echo -n "db-name: "
    read database
