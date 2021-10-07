@@ -38,7 +38,7 @@ readMaria() {
    echoOrange
    echo -n "$mariasCode"
    echoNC
-   read
+   read -r
    maria "$mariasCode"
 }
 
@@ -67,7 +67,7 @@ createUser() { #help
    unlockMaria
    getUser
    green "Please enter db-password"
-   read PASSWDDB
+   read -r PASSWDDB
    mariasCode="CREATE USER \`${user}\`@'localhost' IDENTIFIED BY '${PASSWDDB}';" 
    readMaria
    users
@@ -85,8 +85,8 @@ createDatabase() { #help
 grantPrivileges() { #help
    green "Grant all privileges on database for user:"
    unlockMaria
-   [ -z $user ] && getUser
-   [ -z $database ] && getDatabase
+   [ -z "$user" ] && getUser
+   [ -z "$database" ] && getDatabase
    mariasCode="GRANT ALL PRIVILEGES ON \`${database}\`.* TO '${user}'@'localhost';"
    readMaria
    mariasCode="FLUSH PRIVILEGES;"
@@ -122,19 +122,19 @@ dropDatabase() { #help
 getUser() {
    users
    echo "Enter a username: "
-   read user
+   read -r user
 }
 
 getPassword() {
    green -n "Enter a password: "
-   read password
+   read -r password
 }
 
 getDatabase() {
    databases
    green "Enter a database name"
    echo -n "db-name: "
-   read database
+   read -r database
 }
 
 unlockMaria() {
@@ -144,7 +144,7 @@ getMariaRootPw() {
    green "Enter a root user MySQL password!"
    echo "Note: password will be hidden when typing"
    echo -n "MySQL root password: "
-   read -s rootpasswd
+   read -sr rootpasswd
    maria
    echo ""
 }
@@ -170,10 +170,14 @@ list() { #help
    SCRIPT_PATH="$SCRIPT_DIR/$SCRIPT_NAME"
 
    echo "## Help"
-   cat $SCRIPT_PATH | grep -A1 "() { #help" | sed "s/() {//g" | sed "s/ red //g" | sed "s/ green //g" | sed "s/#help//g" | head -n -2
+   cat "$SCRIPT_PATH" | grep -A1 "() { #help" | sed "s/() {//g" | sed "s/ red //g" | sed "s/ green //g" | sed "s/#help//g" | head -n -2
 }
 
 -h() {
  --help
 }
-[[ ! -z ${@} ]] && ${@} || --help
+if [[ ! -z "${@}" ]]; then
+   "${@}"; 
+else 
+   --help; 
+fi
